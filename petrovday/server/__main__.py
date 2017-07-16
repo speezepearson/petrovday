@@ -9,15 +9,13 @@ game = petrovday.Game(players=['USA', 'Russia', 'China'])
 
 app = flask.Flask(__name__)
 
-@app.route('/jquery-3.2.1.min.js')
-def jquery():
-  return flask.send_from_directory(os.path.join(os.path.dirname(__file__), 'resources'), 'jquery-3.2.1.min.js')
+STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
 
 @app.route('/<player>/')
 def index(player):
   if player not in game.players:
     return (f'Valid sides are: {game.players}', 404)
-  return flask.send_from_directory(os.path.join(os.path.dirname(__file__), 'resources'), 'index.html')
+  return flask.send_from_directory(STATIC_DIR, 'index.html')
 
 @app.route('/<player>/enemies')
 def enemies(player):

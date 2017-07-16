@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <title>Petrov Day</title>
+    <script type="text/javascript" src="/static/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/static/smoothie.js"></script>
+    <script>
+
+      var enemies = {};
+
+      function note_ews_reading(enemyName, reading) {
+        console.log(enemyName, reading);
+        enemies[enemyName].timeSeries.append(new Date().getTime(), reading);
+        // var p = $('<p/>');
+        // p.text(JSON.stringify(reading));
+        // enemies[enemyName].container.append(p);
+      }
+
+      function read_ews_forever(enemy) {
+        $.get('./read_ews/'+enemy, function(data) {
+          note_ews_reading(enemy, JSON.parse(data));
+          setTimeout(function(){read_ews_forever(enemy)}, 50);
+        });
+      }
+
+      function add_enemy(enemyName) {
+        var e = {};
+        enemies
+        e.container = $('<div/>')
+        e.container.css({'border': '1px solid black',
+                 'margin': '1em',
+                 'display': 'inline-block'});
+        e.container.append($('<p><strong>'+enemyName+'</strong></p>'))
+        $('#content').append(e.container);
+
+        e.canvas = $('<canvas width="531" height="205">')
+
+        e.launchButton = $('<button>Launch</button>')
+        e.launchButton.on('click', function(){$.get('launch/'+enemyName)});
+        e.drillButton = $('<button>Drill</button>')
+        e.drillButton.on('click', function(){$.get('drill/'+enemyName)});
+
+        e.chart = new SmoothieChart({
+          maxValueScale: 1.15,
+          grid: {
+            millisPerLine: 10000,
+            verticalSections: 0
+          },
+          millisPerPixel: 100,
+          maxValue: 10,
+          minValue: -10,
+          timestampFormatter: SmoothieChart.timeFormatter,
+          labels: {disabled: true}
+        });
+        e.chart.streamTo(e.canvas[0], 1000/*delay*/);
+
+        e.timeSeries = new TimeSeries();
+
+        e.chart.addTimeSeries(e.timeSeries, {lineWidth:2,strokeStyle:'#ffff00'});
+
+        enemies[enemyName] = e;
+
+        e.container.append(e.launchButton, e.drillButton, e.canvas)
+
+        read_ews_forever(enemyName);
+      }
+
+      $(function() {
+
+        $.get('enemies', function(data) {
+          enemies = JSON.parse(data);
+          charts = {};
+          console.log('enemies are:', enemies);
+          for (var i=0; i<enemies.length; i++) {
+            add_enemy(enemies[i]);
+          }
+        });
+
+      });
+    </script>
+  </head>
+  <body>
+    <div id="content" style="layout: flex" />
+  </body>
+</html>
