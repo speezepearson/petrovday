@@ -12,6 +12,9 @@ class EarlyWarningSystem:
     self.target = target
     self.noise = noise
 
+  def __str__(self):
+    return f'EarlyWarningSystem({self.location!r}, {self.target!r}, {self.noise!r})'
+
   @classmethod
   def _get_reading_for_incoming_missile(cls, missile_fractional_progress: float) -> float:
     return -math.log(1-missile_fractional_progress)
