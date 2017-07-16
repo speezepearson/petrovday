@@ -4,15 +4,23 @@ from .missile import Missile
 from .earlywarningsystem import EarlyWarningSystem
 from .randomprocess import white_noise
 
+def frange(start, stop, step):
+  while start < stop:
+    yield start
+    start += step
+SCALES = [dt.timedelta(seconds=10**n) for n in frange(0, 2, .2)]
+WEIGHTS = [(s/dt.timedelta(seconds=1))**.8 / 20 for s in SCALES]
+def make_ews_noise(seed):
+  return white_noise(
+           scales=SCALES,
+           weights=WEIGHTS,
+           seed=seed,
+           origin=dt.datetime(2017, 9, 26, 0, 0, 0))
+
 class Game:
   def __init__(self, players):
     players = set(players)
-    self.ewss = {(player, enemy): EarlyWarningSystem(
-                                    player, enemy,
-                                    white_noise(scales=[dt.timedelta(seconds=1)],
-                                                weights=[.1],
-                                                seed=(player, enemy),
-                                                origin=dt.datetime(2017, 9, 26, 0, 0, 0)))
+    self.ewss = {(player, enemy): EarlyWarningSystem(player, enemy, make_ews_noise(seed=(player, enemy)))
                  for player in players
                  for enemy in players
                  if enemy != player}
