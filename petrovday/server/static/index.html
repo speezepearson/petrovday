@@ -39,6 +39,10 @@
         e.drillButton = $('<button>Drill</button>')
         e.drillButton.on('click', function(){$.get('drill/'+enemyName)});
 
+        var buttonContainer = $('<div/>');
+        buttonContainer.css({'display':'flex', 'flex-direction':'row'});
+        buttonContainer.append(e.launchButton, e.drillButton);
+
         e.chart = new SmoothieChart({
           maxValueScale: 1.15,
           grid: {
@@ -59,7 +63,7 @@
 
         enemies[enemyName] = e;
 
-        e.container.append(e.launchButton, e.drillButton, e.canvas)
+        e.container.append(buttonContainer, e.canvas)
 
         read_ews_forever(enemyName);
       }

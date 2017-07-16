@@ -21,7 +21,7 @@ def index(player):
 def enemies(player):
   if player not in game.players:
     return (f'Valid sides are: {game.players}', 404)
-  return json.dumps(list(game.enemies(player)))
+  return json.dumps(list(sorted(game.enemies(player))))
 
 @app.route('/<player>/launch/<enemy>')
 def launch(player, enemy):
@@ -30,9 +30,14 @@ def launch(player, enemy):
   game.launch(player, enemy, departure_time=dt.datetime.now())
   return ''
 
+@app.route('/<player>/drill/<enemy>')
+def drill(player, enemy):
+  launch(enemy, player)
+  return ''
+
 @app.route('/<player>/read_ews/<enemy>')
 def read_ews(player, enemy):
   if (player not in game.players) or (enemy not in game.players):
     return (f'Valid sides are: {game.players}', 404)
-  time.sleep(3)
+  time.sleep(1)
   return str(game.read_ews(player, enemy, dt.datetime.now()))
