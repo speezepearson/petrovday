@@ -1,10 +1,10 @@
 import datetime as dt
 from petrovday import Missile
-from petrovday.randomprocess import RandomProcess
+from petrovday.randomprocess import white_noise
 from petrovday.earlywarningsystem import EarlyWarningSystem
 
 class TestReadings:
-  ews = EarlyWarningSystem('USA', 'Russia', RandomProcess({1: 1}, seed=0))
+  ews = EarlyWarningSystem('USA', 'Russia', white_noise([1], seed=0))
 
   now = 100
   old_incoming_missile = Missile('Russia', 'USA', departure_time=now-9, eta=now+1)
@@ -23,7 +23,7 @@ class TestReadings:
     d_yim = r_yim-r0
     d_obm = r_obm-r0
     d_yim_obm = r_yim_obm-r0
-    assert abs(d_yim_obm - (d_yim+d_obm) < 1e-9)
+    assert abs(d_yim_obm - (d_yim+d_obm)) < 1e-9
 
   def test_nearer_incoming_missiles_increase_readings_more(self):
     assert (

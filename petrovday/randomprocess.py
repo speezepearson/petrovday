@@ -1,21 +1,45 @@
+import abc
 import random
 
 class RandomProcess:
-  def __init__(self, noisinesses_by_scale, *, zero=0, seed=None):
-    self.noisinesses_by_scale = noisinesses_by_scale
+  def __init__(self, seed=None):
     self.seed = seed if (seed is not None) else random.random()
-    self.zero = zero
 
-  def sample(self, x) -> float:
-    return sum(self._sample_on_scale(x, scale) for scale in self.noisinesses_by_scale.keys())
+  @abc.abstractmethod
+  def sample(self, x):
+    pass
 
-  def _sample_on_scale(self, x, scale):
-    prev_checkpoint = self.zero + scale*((x-self.zero)//scale)
-    next_checkpoint = prev_checkpoint + scale
+class WeightedSumRandomProcess(RandomProcess):
+  def __init__(self, weighted_subprocesses, **kwargs):
+    super().__init__(**kwargs)
+    self.weighted_subprocesses = weighted_subprocesses
+
+  def sample(self, x):
+    return sum(p.sample(x)*w for (w, p) in self.weighted_subprocesses)
+
+class RegularlyInterpolatedRandomProcess(RandomProcess):
+  def __init__(self, sample_at_checkpoint, *, origin=0, scale=1, **kwargs):
+    super().__init__(**kwargs)
+    self.sample_at_checkpoint = sample_at_checkpoint
+    self.origin = origin
+    self.scale = scale
+
+  def sample(self, x):
+    prev_checkpoint = self.origin + self.scale*((x-self.origin)//self.scale)
+    next_checkpoint = prev_checkpoint + self.scale
 
     w = (x - prev_checkpoint) / (next_checkpoint - prev_checkpoint)
-    return (self._sample_on_scale_at_checkpoint(next_checkpoint, scale) * w +
-            self._sample_on_scale_at_checkpoint(prev_checkpoint, scale) * (1-w))
+    return (self.sample_at_checkpoint(random.Random((self.seed, next_checkpoint)), next_checkpoint) * w +
+            self.sample_at_checkpoint(random.Random((self.seed, prev_checkpoint)), prev_checkpoint) * (1-w))
 
-  def _sample_on_scale_at_checkpoint(self, x, scale):
-    return random.Random((self.seed, x)).normalvariate(0, self.noisinesses_by_scale[scale])
+def white_noise(scales, weights=None, **kwargs):
+  if weights is None:
+    weights = [scale**.5 for scale in scales]
+
+  return WeightedSumRandomProcess([
+    (weight, RegularlyInterpolatedRandomProcess(
+               sample_at_checkpoint=(lambda r, x: r.normalvariate(0, 1)),
+               scale=scale,
+               **kwargs))
+    for (scale, weight) in zip(scales, weights)
+  ])
