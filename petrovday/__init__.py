@@ -8,4 +8,5 @@ Missile = typing.NamedTuple('Missile', [('origin', str),
                                         ('eta', dt.datetime)])
 
 from . import randomprocess
-from . import earlywarningsystem
+from .game import Game
+from .earlywarningsystem import EarlyWarningSystem
