@@ -1,6 +1,6 @@
 import typing
 import math
-from . import Missile
+from .missile import Missile
 from .randomprocess import RandomProcess
 
 def _get_fractional_progress(m: Missile, time) -> float:

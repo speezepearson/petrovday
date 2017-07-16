@@ -1,6 +1,6 @@
 import datetime as dt
 
-from . import Missile
+from .missile import Missile
 from .earlywarningsystem import EarlyWarningSystem
 from .randomprocess import white_noise
 
