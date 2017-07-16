@@ -16,12 +16,12 @@ class EarlyWarningSystem:
 
   @classmethod
   def _get_reading_for_incoming_missile(cls, missile_fractional_progress: float) -> float:
-    return -math.log(1-missile_fractional_progress)
+    return -5*math.log(1-missile_fractional_progress**.5)
 
   @classmethod
   def _get_reading_for_benign_missile(cls, missile_fractional_progress: float) -> float:
     x = missile_fractional_progress
-    return x*(1-x)
+    return 5*x*(1-x)
 
   def _get_noise_for_missile(self, missile: Missile, time) -> float:
     x = _get_fractional_progress(missile, time)
