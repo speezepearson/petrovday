@@ -1,7 +1,6 @@
 import typing
 import math
 from .missile import Missile
-from .randomprocess import RandomProcess
 
 def _get_fractional_progress(m: Missile, time) -> float:
   return (time-m.departure_time) / (m.eta-m.departure_time)
