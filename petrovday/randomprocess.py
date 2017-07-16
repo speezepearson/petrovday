@@ -1,45 +1,46 @@
-import abc
 import random
+import functools
+from typing import TypeVar, Iterable, Tuple, Callable
 
-class RandomProcess:
-  def __init__(self, seed=None):
-    self.seed = seed if (seed is not None) else random.random()
+W = TypeVar('W')
+A = TypeVar('A')
+R = TypeVar('R')
 
-  @abc.abstractmethod
-  def sample(self, x):
-    pass
+def weighted_sum(weights_and_functions: Iterable[Tuple[W, Callable[..., R]]]) -> Callable[..., R]:
+  (weights, functions) = zip(*weights_and_functions)
+  @functools.wraps(functions[0])
+  def result(*args, **kwargs):
+    return sum(w*f(*args, **kwargs) for (w, f) in zip(weights, functions))
+  return result
 
-class WeightedSumRandomProcess(RandomProcess):
-  def __init__(self, weighted_subprocesses, **kwargs):
-    super().__init__(**kwargs)
-    self.weighted_subprocesses = weighted_subprocesses
-
-  def sample(self, x):
-    return sum(p.sample(x)*w for (w, p) in self.weighted_subprocesses)
-
-class RegularlyInterpolatedRandomProcess(RandomProcess):
-  def __init__(self, sample_at_checkpoint, *, origin=0, scale=1, **kwargs):
-    super().__init__(**kwargs)
-    self.sample_at_checkpoint = sample_at_checkpoint
-    self.origin = origin
-    self.scale = scale
-
-  def sample(self, x):
-    prev_checkpoint = self.origin + self.scale*((x-self.origin)//self.scale)
-    next_checkpoint = prev_checkpoint + self.scale
+def regularly_interpolate(sample_at_checkpoint: Callable[[A], R], origin=0, scale=1) -> Callable[[A], R]:
+  @functools.wraps(sample_at_checkpoint)
+  def result(x: A) -> R:
+    prev_checkpoint = origin + scale*((x-origin)//scale)
+    next_checkpoint = prev_checkpoint + scale
 
     w = (x - prev_checkpoint) / (next_checkpoint - prev_checkpoint)
-    return (self.sample_at_checkpoint(random.Random((self.seed, next_checkpoint)), next_checkpoint) * w +
-            self.sample_at_checkpoint(random.Random((self.seed, prev_checkpoint)), prev_checkpoint) * (1-w))
+    return (sample_at_checkpoint(next_checkpoint) * w +
+            sample_at_checkpoint(prev_checkpoint) * (1-w))
+  return result
 
-def white_noise(scales, weights=None, **kwargs):
+def pseudorandom_static(f: Callable[[random.Random], R], seed=None) -> Callable[..., R]:
+  if seed is None:
+    seed = random.random()
+
+  def result(*args, **kwargs) -> R:
+    return f(random.Random((seed, args, tuple(sorted(kwargs.items())))))
+
+  return result
+
+def white_noise(scales, weights=None, seed=None, **kwargs):
   if weights is None:
     weights = [scale**.5 for scale in scales]
 
-  return WeightedSumRandomProcess([
-    (weight, RegularlyInterpolatedRandomProcess(
-               sample_at_checkpoint=(lambda r, x: r.normalvariate(0, 1)),
+  return weighted_sum([
+    (weight, regularly_interpolate(
+               sample_at_checkpoint=pseudorandom_static(lambda r: r.normalvariate(0, 1), seed=seed),
                scale=scale,
                **kwargs))
-    for (scale, weight) in zip(scales, weights)
+    for (weight, scale) in zip(weights, scales)
   ])

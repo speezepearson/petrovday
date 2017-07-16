@@ -32,5 +32,5 @@ class EarlyWarningSystem:
 
   def get_reading(self, missiles: typing.Iterable[Missile], time) -> float:
     return (
-      self.noise.sample(time) +
+      self.noise(time) +
       sum(self._get_noise_for_missile(m, time) for m in missiles))
