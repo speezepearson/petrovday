@@ -3,6 +3,28 @@
     <title>Petrov Day</title>
     <script type="text/javascript" src="/static/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="/static/smoothie.js"></script>
+
+    <style>
+      #content {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .enemy-container {
+        border: 1px solid black;
+        margin: 0.5em;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        flex-grow: 40%;
+      }
+
+      .ews-canvas {
+        padding: 1em;
+      }
+    </style>
     <script>
 
       var enemies = {};
@@ -25,14 +47,11 @@
       function add_enemy(enemyName) {
         var e = {};
         enemies
-        e.container = $('<div/>')
-        e.container.css({'border': '1px solid black',
-                 'margin': '1em',
-                 'display': 'inline-block'});
+        e.container = $('<div class="enemy-container"/>')
         e.container.append($('<p><strong>'+enemyName+'</strong></p>'))
         $('#content').append(e.container);
 
-        e.canvas = $('<canvas width="531" height="205">')
+        e.canvas = $('<canvas class="ews-canvas" width="531" height="205">')
 
         e.launchButton = $('<button>Launch</button>')
         e.launchButton.on('click', function(){$.get('launch/'+enemyName)});
@@ -83,6 +102,6 @@
     </script>
   </head>
   <body>
-    <div id="content" style="layout: flex" />
+    <div id="content" />
   </body>
 </html>
