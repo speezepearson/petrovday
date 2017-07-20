@@ -24,9 +24,7 @@ def regularly_interpolate(sample_at_checkpoint: Callable[[A], R], origin=0, scal
             sample_at_checkpoint(prev_checkpoint) * (1-w))
   return result
 
-def pseudorandom_static(f: Callable[[random.Random], R], seed=None) -> Callable[..., R]:
-  if seed is None:
-    seed = random.random()
+def pseudorandom_static(f: Callable[[random.Random], R], seed) -> Callable[..., R]:
 
   def result(*args, **kwargs) -> R:
     return f(random.Random((seed, args, tuple(sorted(kwargs.items())))))
