@@ -25,7 +25,7 @@ def make_ews_noise(seed, cauchy_coefficient=1):
 class Game:
   def __init__(self, players):
     players = set(players)
-    self.ewss = {(player, enemy): EarlyWarningSystem(player, enemy, make_ews_noise(seed=(player, enemy)))
+    self.ewss = {(player, enemy): EarlyWarningSystem(player, enemy, make_ews_noise(seed=(player, enemy)), limits=(-10, 10))
                  for player in players
                  for enemy in players
                  if enemy != player}
