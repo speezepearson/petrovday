@@ -32,7 +32,7 @@
       function note_ews_reading(enemyName, reading) {
         console.log(enemyName, reading);
         enemies[enemyName].timeSeries.append(new Date().getTime(), reading);
-        enemies[enemyName].container.css({'background-color': (reading > 10) ? 'red' : 'initial'})
+        enemies[enemyName].container.css({'background-color': (reading >= 10) ? 'red' : 'initial'})
       }
 
       function read_ews_forever(enemy) {
@@ -67,8 +67,8 @@
             verticalSections: 0
           },
           millisPerPixel: 20,
-          maxValue: 10,
-          minValue: -10,
+          maxValue: 10.2,
+          minValue: -10.2,
           timestampFormatter: SmoothieChart.timeFormatter,
           labels: {disabled: true}
         });
