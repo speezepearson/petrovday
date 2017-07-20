@@ -2,20 +2,25 @@ import datetime as dt
 
 from .missile import Missile
 from .earlywarningsystem import EarlyWarningSystem
-from .randomprocess import white_noise
+from . import randomprocess as rp
 
 def frange(start, stop, step):
   while start < stop:
     yield start
     start += step
 SCALES = [dt.timedelta(seconds=10**n) for n in frange(0, 2, .2)]
-WEIGHTS = [(s/dt.timedelta(seconds=1))**.8 / 20 for s in SCALES]
-def make_ews_noise(seed):
-  return white_noise(
+WEIGHTS = [(s/dt.timedelta(seconds=1))**.5 / 10 for s in SCALES]
+def make_ews_noise(seed, cauchy_coefficient=1):
+  return rp.weighted_sum([
+    (1, rp.white_noise(
            scales=SCALES,
            weights=WEIGHTS,
            seed=seed,
-           origin=dt.datetime(2017, 9, 26, 0, 0, 0))
+           origin=dt.datetime(2017, 9, 26, 0, 0, 0))),
+    (1, rp.regularly_interpolate(
+           rp.pseudorandom_static(seed=seed, f=(lambda r: cauchy_coefficient/r.normalvariate(0, 1))),
+           origin=dt.datetime(2017, 9, 26, 0, 0, 0),
+           scale=dt.timedelta(seconds=100)))])
 
 class Game:
   def __init__(self, players):
