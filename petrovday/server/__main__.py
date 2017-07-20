@@ -5,7 +5,7 @@ import json
 import flask
 import petrovday
 
-game = petrovday.Game(players=['USA', 'Russia', 'China'])
+game = petrovday.Game(players=['Seattle', 'NYC', 'San Francisco', 'Boston'])
 
 app = flask.Flask(__name__)
 
