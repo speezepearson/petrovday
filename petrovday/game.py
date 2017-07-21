@@ -20,7 +20,7 @@ class Game:
   def enemies(self, player):
     return {p for p in self.players if p != player}
 
-  def launch(self, aggressor, victim, departure_time, missile_flight_time=dt.timedelta(seconds=60)):
+  def launch(self, aggressor, victim, departure_time, missile_flight_time=dt.timedelta(seconds=180)):
     if departure_time is None:
       departure_time = dt.datetime.now()
     self.missiles.append(Missile(origin=aggressor, destination=victim, departure_time=departure_time, eta=departure_time+missile_flight_time))
