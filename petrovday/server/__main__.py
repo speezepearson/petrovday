@@ -40,4 +40,5 @@ def read_ews(player, enemy):
   if (player not in game.players) or (enemy not in game.players):
     return (f'Valid sides are: {game.players}', 404)
   time.sleep(1)
-  return str(game.read_ews(player, enemy, dt.datetime.now()))
+  import json
+  return json.dumps(game.read_ews(player, enemy, dt.datetime.now()))

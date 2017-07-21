@@ -3,6 +3,7 @@
     <title>Petrov Day</title>
     <script type="text/javascript" src="/static/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="/static/smoothie.js"></script>
+    <script type="text/javascript" src="/static/mustache.min.js"></script>
 
     <style>
       #content {
@@ -21,18 +22,75 @@
         flex-grow: 40%;
       }
 
+      .button-container {
+        display: flex;
+        flex-direction: row;
+      }
+
       .ews-canvas {
         padding: 1em;
+      }
+
+      .lrr-readouts {
+        border-collapse: collapse;
+      }
+      .lrr-readouts td,th {
+        border: 1px solid black;
+        padding: 0 1em;
+        text-align: center;
       }
     </style>
     <script>
 
+      var MISSILE_FLIGHT_TIME_SECONDS = 1*60;
+      var LRR_READOUT_INTERVALS = [165, 150, 120, 60, 30, 15];
+
       var enemies = {};
+
+      // Standard Normal variate using Box-Muller transform.
+      // Stolen from https://stackoverflow.com/a/36481059
+      function normalvariate() {
+          var u = 1 - Math.random(); // Subtraction to flip [0, 1) to (0, 1].
+          var v = 1 - Math.random();
+          return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+      }
+
+      function getLRR(readings, alpha, f, t) {
+        result = 0;
+        for (var i=t; i<readings.length; i++) {
+          var x = readings[i];
+          var p = alpha + (1-alpha)*f(i-t);
+          result = result + ((x==1) ? (Math.log(p)-Math.log(alpha)) : (Math.log(1-p)-Math.log(1-alpha)));
+        }
+        return result;
+      }
+
+      function getCumulativeMaxLRR(readings, alpha, f) {
+        var result = [];
+        var currentMax = -9999;
+        for (var i=0; i<readings.length; i++) {
+          var lrr = getLRR(readings, alpha, f, i);
+          if (lrr > currentMax) {currentMax = lrr;}
+          result.push(currentMax);
+        }
+        return result;
+      }
 
       function note_ews_reading(enemyName, reading) {
         console.log(enemyName, reading);
-        enemies[enemyName].timeSeries.append(new Date().getTime(), reading);
-        enemies[enemyName].container.css({'background-color': (reading >= 10) ? 'red' : 'initial'})
+        var e = enemies[enemyName];
+        e.recentData.push(reading);
+        if (e.recentData.length > MISSILE_FLIGHT_TIME_SECONDS) {e.recentData.shift();}
+        e.timeSeries.append(new Date().getTime(), 100 * ((reading ? 1 : -1) + normalvariate()/10));
+        // e.container.css({'background-color': (reading >= 10) ? 'red' : 'initial'});
+
+        var lrrs = getCumulativeMaxLRR(e.recentData.slice(-MISSILE_FLIGHT_TIME_SECONDS), .1, function(dt){return dt/MISSILE_FLIGHT_TIME_SECONDS;});
+        LRR_READOUT_INTERVALS.forEach(function(interval){
+          if (interval >= lrrs.length) return;
+          var lrr = Math.round(lrrs[lrrs.length-interval]);
+          e.container.find(`.lrr-readouts td[data-for-interval=${interval}]`).text(lrr.toString());
+          e.container.find(`.lrr-readouts tr[data-for-interval=${interval}]`).css({'background-color': (lrr > 2 ? 'pink' : 'initial')});
+        });
       }
 
       function read_ews_forever(enemy) {
@@ -42,45 +100,64 @@
         });
       }
 
+      ENEMY_CONTAINER_TEMPLATE = `
+        <div class="enemy-container" id="{{enemyName}}">
+          <p><strong>{{enemyName}}</strong></p>
+          <div class="button-container">
+            <button class="launch-button">Launch</button>
+            <button class="drill-button">Drill</button>
+          </div>
+          <canvas class="ews-canvas" width="500" height="300" />
+          <table class="lrr-readouts">
+            <tr>
+              <th> Representativeness </th>
+              <th> of having less than ____ seconds to live </th>
+            </tr>
+            ${LRR_READOUT_INTERVALS.sort(function(a,b){return b-a}).map(
+              function(interval) {
+                return `
+                  <tr data-for-interval="${interval}">
+                    <td data-for-interval="${interval}"> 0 </td>
+                    <td> ${MISSILE_FLIGHT_TIME_SECONDS - interval} </td>
+                  </tr>`
+              }
+            ).join('')}
+          </table>
+        </div>
+      `
+
       function add_enemy(enemyName) {
-        var e = {};
-        enemies
-        e.container = $('<div class="enemy-container"/>')
-        e.container.append($('<p><strong>'+enemyName+'</strong></p>'))
+        var e = {'recentData': []};
+
+        e.container = $(Mustache.render(ENEMY_CONTAINER_TEMPLATE, {'enemyName': enemyName}));
         $('#content').append(e.container);
 
-        e.canvas = $('<canvas class="ews-canvas" width="531" height="205">')
-
-        e.launchButton = $('<button>Launch</button>')
-        e.launchButton.on('click', function(){$.get('launch/'+enemyName)});
-        e.drillButton = $('<button>Drill</button>')
-        e.drillButton.on('click', function(){$.get('drill/'+enemyName)});
-
-        var buttonContainer = $('<div/>');
-        buttonContainer.css({'display':'flex', 'flex-direction':'row'});
-        buttonContainer.append(e.launchButton, e.drillButton);
+        e.container.find('.launch-button').on('click', function(){$.get('launch/'+enemyName)});
+        e.container.find('.drill-button').on('click', function(){$.get('drill/'+enemyName)});
 
         e.chart = new SmoothieChart({
-          maxValueScale: 1.15,
           grid: {
             millisPerLine: 10000,
             verticalSections: 0
           },
-          millisPerPixel: 20,
-          maxValue: 10.2,
-          minValue: -10.2,
+          horizontalLines: [
+            {color:'#ffffff',lineWidth:1,value:0},
+            {color:'#880000',lineWidth:2,value:100},
+            {color:'#880000',lineWidth:2,value:-100}
+          ],
+          millisPerPixel: 100,
+          maxValue: 150,
+          minValue: -180,
           timestampFormatter: SmoothieChart.timeFormatter,
           labels: {disabled: true}
         });
-        e.chart.streamTo(e.canvas[0], 1000/*delay*/);
+        e.chart.streamTo(e.container.find('.ews-canvas')[0], 0/*delay*/);
 
         e.timeSeries = new TimeSeries();
 
         e.chart.addTimeSeries(e.timeSeries, {lineWidth:2,strokeStyle:'#ffff00'});
 
         enemies[enemyName] = e;
-
-        e.container.append(buttonContainer, e.canvas)
 
         read_ews_forever(enemyName);
       }
