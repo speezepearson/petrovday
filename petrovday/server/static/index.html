@@ -4,6 +4,7 @@
     <script type="text/javascript" src="/static/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="/static/smoothie.js"></script>
     <script type="text/javascript" src="/static/mustache.min.js"></script>
+    <script type="text/javascript" src="/static/hypothesis.js"></script>
 
     <style>
       #content {
@@ -47,6 +48,7 @@
 
       var enemies = {};
 
+
       // Standard Normal variate using Box-Muller transform.
       // Stolen from https://stackoverflow.com/a/36481059
       function normalvariate() {
@@ -55,39 +57,18 @@
           return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
       }
 
-      function getLRR(readings, alpha, f, t) {
-        result = 0;
-        for (var i=t; i<readings.length; i++) {
-          var x = readings[i];
-          var p = alpha + (1-alpha)*f(i-t);
-          result = result + ((x==1) ? (Math.log(p)-Math.log(alpha)) : (Math.log(1-p)-Math.log(1-alpha)));
-        }
-        return result;
-      }
-
-      function getCumulativeMaxLRR(readings, alpha, f) {
-        var result = [];
-        var currentMax = -9999;
-        for (var i=0; i<readings.length; i++) {
-          var lrr = getLRR(readings, alpha, f, i);
-          if (lrr > currentMax) {currentMax = lrr;}
-          result.push(currentMax);
-        }
-        return result;
-      }
-
+      var discrete_time = 0;
       function note_ews_reading(enemyName, reading) {
         console.log(enemyName, reading);
         var e = enemies[enemyName];
-        e.recentData.push(reading);
-        if (e.recentData.length > MISSILE_FLIGHT_TIME_SECONDS) {e.recentData.shift();}
-        e.timeSeries.append(new Date().getTime(), 100 * ((reading ? 1 : -1) + normalvariate()/10));
-        // e.container.css({'background-color': (reading >= 10) ? 'red' : 'initial'});
 
-        var lrrs = getCumulativeMaxLRR(e.recentData.slice(-MISSILE_FLIGHT_TIME_SECONDS), .1, function(dt){return dt/MISSILE_FLIGHT_TIME_SECONDS;});
-        LRR_READOUT_INTERVALS.forEach(function(interval){
-          if (interval >= lrrs.length) return;
-          var lrr = Math.round(lrrs[lrrs.length-interval]);
+        e.hypothesisSet.updateRelativeRepresentativenesses(discrete_time, reading);
+        discrete_time += 1;
+
+        e.timeSeries.append(new Date().getTime(), 100 * ((reading ? 1 : -1) + normalvariate()/10));
+
+        LRR_READOUT_INTERVALS.forEach(function(interval) {
+          var lrr = Math.round(e.hypothesisSet.getMaxLogRelativeRepresentativenessInRange(discrete_time-interval, discrete_time));
           e.container.find(`.lrr-readouts td[data-for-interval=${interval}]`).text(lrr.toString());
           e.container.find(`.lrr-readouts tr[data-for-interval=${interval}]`).css({'background-color': (lrr > 2 ? 'pink' : 'initial')});
         });
@@ -127,7 +108,7 @@
       `
 
       function add_enemy(enemyName) {
-        var e = {'recentData': []};
+        var e = {'hypothesisSet': new HypothesisSet()};
 
         e.container = $(Mustache.render(ENEMY_CONTAINER_TEMPLATE, {'enemyName': enemyName}));
         $('#content').append(e.container);
