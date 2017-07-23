@@ -1,11 +1,17 @@
 import time
 import os
-import datetime as dt
 import json
 import flask
 import petrovday
 
 game = petrovday.Game(players=['Seattle', 'NYC', 'San Francisco', 'Boston'])
+
+START_TIME = time.time()
+def get_integer_time():
+  return int(time.time()-START_TIME)
+def wait_until_next_integer_time():
+  remainder = time.time() % 1
+  time.sleep((1 if remainder==0 else remainder) + 0.01)
 
 app = flask.Flask(__name__)
 
@@ -27,7 +33,7 @@ def enemies(player):
 def launch(player, enemy):
   if (player not in game.players) or (enemy not in game.players):
     return (f'Valid sides are: {game.players}', 404)
-  game.launch(player, enemy, departure_time=dt.datetime.now())
+  game.launch(player, enemy, departure_time=get_integer_time())
   return ''
 
 @app.route('/<player>/drill/<enemy>')
@@ -35,10 +41,15 @@ def drill(player, enemy):
   launch(enemy, player)
   return ''
 
-@app.route('/<player>/read_ews/<enemy>')
-def read_ews(player, enemy):
-  if (player not in game.players) or (enemy not in game.players):
+@app.route('/<player>/read_ewss')
+def read_ews(player):
+  if player not in game.players:
     return (f'Valid sides are: {game.players}', 404)
-  time.sleep(1)
-  import json
-  return json.dumps(game.read_ews(player, enemy, dt.datetime.now()))
+
+  since = int(flask.request.args['since'])
+  if since == get_integer_time():
+    wait_until_next_integer_time()
+
+  return json.dumps({
+    t: {enemy: game.read_ews(player, enemy, t) for enemy in game.enemies(player)}
+    for t in range(since, get_integer_time())})

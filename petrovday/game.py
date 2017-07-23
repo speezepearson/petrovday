@@ -1,5 +1,3 @@
-import datetime as dt
-
 from .missile import Missile
 from .earlywarningsystem import EarlyWarningSystem
 from . import randomprocess as rp
@@ -20,9 +18,7 @@ class Game:
   def enemies(self, player):
     return {p for p in self.players if p != player}
 
-  def launch(self, aggressor, victim, departure_time, missile_flight_time=dt.timedelta(seconds=180)):
-    if departure_time is None:
-      departure_time = dt.datetime.now()
+  def launch(self, aggressor, victim, departure_time, missile_flight_time=180):
     self.missiles.append(Missile(origin=aggressor, destination=victim, departure_time=departure_time, eta=departure_time+missile_flight_time))
 
   def read_ews(self, location, target, time):

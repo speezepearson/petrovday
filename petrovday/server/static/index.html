@@ -44,7 +44,8 @@
     <script>
 
       var MISSILE_FLIGHT_TIME_SECONDS = 3*60;
-      var LRR_READOUT_INTERVALS = [165, 150, 120, 60, 30, 15];
+      var LRR_READOUT_INTERVALS = [[180, 165], [165, 150], [150, 120],
+                                   [120, 60], [60, 30], [30, 0]];
 
       var enemies = {};
 
@@ -57,28 +58,44 @@
           return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
       }
 
-      var discrete_time = 0;
-      function note_ews_reading(enemyName, reading) {
-        console.log(enemyName, reading);
-        var e = enemies[enemyName];
-
-        e.hypothesisSet.updateRelativeRepresentativenesses(discrete_time, reading);
-        discrete_time += 1;
-
-        e.timeSeries.append(new Date().getTime(), 100 * ((reading ? 1 : -1) + normalvariate()/10));
-
-        LRR_READOUT_INTERVALS.forEach(function(interval) {
-          var lrr = Math.round(e.hypothesisSet.getMaxLogRelativeRepresentativenessInRange(discrete_time-interval, discrete_time));
-          e.container.find(`.lrr-readouts td[data-for-interval=${interval}]`).text(lrr.toString());
-          e.container.find(`.lrr-readouts tr[data-for-interval=${interval}]`).css({'background-color': (lrr > 2 ? 'pink' : 'initial')});
-        });
+      function forEachKV(obj, f) {
+        Object.entries(obj).forEach(function(kv){f(kv[0], kv[1]);});
       }
 
-      function read_ews_forever(enemy) {
-        $.get('./read_ews/'+enemy, function(data) {
-          note_ews_reading(enemy, JSON.parse(data));
-          setTimeout(function(){read_ews_forever(enemy)}, 50);
+      var integerTime = 0;
+      function note_ews_readings(readings) {
+
+        nData = Object.getOwnPropertyNames(readings).length;
+        integerTime += nData;
+
+        var readingTime = new Date();
+        readingTime.setSeconds(readingTime.getSeconds() - nData);
+        forEachKV(readings, function(t, readingsByEnemyName) {
+          readingTime.setSeconds(readingTime.getSeconds() + 1);
+          t = parseInt(t);
+          forEachKV(readingsByEnemyName, function(enemyName, reading) {
+            var e = enemies[enemyName];
+            e.hypothesisSet.updateRelativeRepresentativenesses(t, reading);
+            e.timeSeries.append(readingTime.getTime(), 100 * ((reading ? 1 : -1) + normalvariate()/10));
+          });
         });
+
+        forEachKV(enemies, function(enemyName, e) {
+          LRR_READOUT_INTERVALS.forEach(function(interval) {
+            var lrr = Math.round(e.hypothesisSet.getMaxLogRelativeRepresentativenessInRange(integerTime-interval[0], integerTime-interval[1]));
+            e.container.find(`.lrr-readouts td[data-for-interval="${interval}"]`).text(lrr.toString());
+            e.container.find(`.lrr-readouts tr[data-for-interval="${interval}"]`).css({'background-color': (lrr > 2 ? 'pink' : 'initial')});
+          });
+        });
+
+      }
+
+      function read_ewss_forever() {
+        $.get('./read_ewss', {'since': integerTime},
+          function(data) {
+            note_ews_readings(JSON.parse(data));
+            setTimeout(function(){read_ewss_forever()}, 500);
+          });
       }
 
       ENEMY_CONTAINER_TEMPLATE = `
@@ -92,14 +109,14 @@
           <table class="lrr-readouts">
             <tr>
               <th> Representativeness </th>
-              <th> of having less than ____ seconds to live </th>
+              <th> of launch in last ____ seconds </th>
             </tr>
-            ${LRR_READOUT_INTERVALS.sort(function(a,b){return b-a}).map(
+            ${LRR_READOUT_INTERVALS.sort(function(a,b){return a-b}).map(
               function(interval) {
                 return `
                   <tr data-for-interval="${interval}">
                     <td data-for-interval="${interval}"> 0 </td>
-                    <td> ${MISSILE_FLIGHT_TIME_SECONDS - interval} </td>
+                    <td> ${interval.join("-")} </td>
                   </tr>`
               }
             ).join('')}
@@ -126,7 +143,7 @@
             {color:'#880000',lineWidth:2,value:100},
             {color:'#880000',lineWidth:2,value:-100}
           ],
-          millisPerPixel: 100,
+          millisPerPixel: 333,
           maxValue: 150,
           minValue: -180,
           timestampFormatter: SmoothieChart.timeFormatter,
@@ -139,19 +156,15 @@
         e.chart.addTimeSeries(e.timeSeries, {lineWidth:2,strokeStyle:'#ffff00'});
 
         enemies[enemyName] = e;
-
-        read_ews_forever(enemyName);
       }
 
       $(function() {
 
         $.get('enemies', function(data) {
-          enemies = JSON.parse(data);
-          charts = {};
-          console.log('enemies are:', enemies);
-          for (var i=0; i<enemies.length; i++) {
-            add_enemy(enemies[i]);
-          }
+          JSON.parse(data).forEach(function(enemyName) {
+            add_enemy(enemyName);
+          })
+          read_ewss_forever();
         });
 
       });
