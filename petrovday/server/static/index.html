@@ -83,7 +83,7 @@
         forEachKV(enemies, function(enemyName, e) {
           LRR_READOUT_INTERVALS.forEach(function(interval) {
             var lrr = Math.round(e.hypothesisSet.getMaxLogRelativeRepresentativenessInRange(integerTime-interval[0], integerTime-interval[1]));
-            e.container.find(`.lrr-readouts td[data-for-interval="${interval}"]`).text(lrr.toString());
+            e.container.find(`.lrr-readouts td[data-for-interval="${interval}"]`).text(Number.isFinite(lrr) ? lrr.toString() : "--");
             e.container.find(`.lrr-readouts tr[data-for-interval="${interval}"]`).css({'background-color': (lrr > 2 ? 'pink' : 'initial')});
           });
         });
