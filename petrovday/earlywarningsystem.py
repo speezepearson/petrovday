@@ -24,7 +24,7 @@ class EarlyWarningSystem:
   @classmethod
   def fractional_increase_in_p_for_missile(cls, fractional_progress: float) -> float:
     x = fractional_progress
-    return cls.false_alarm_p + (1-cls.false_alarm_p) * (x*(2-x))
+    return cls.false_alarm_p + (1-cls.false_alarm_p) * x
 
   def get_reading(self, missiles: typing.Iterable[Missile], time) -> bool:
     alarm_p = self.false_alarm_p
