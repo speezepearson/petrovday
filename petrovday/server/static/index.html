@@ -93,7 +93,11 @@
         e.container = $(Mustache.render(ENEMY_CONTAINER_TEMPLATE, {'enemyName': enemyName}));
         $('#content').append(e.container);
 
-        e.container.find('.launch-button').on('click', function(){$.get('launch/'+enemyName)});
+        e.container.find('.launch-button').on('click', function(){
+          $.get('launch/'+enemyName);
+          $(this).addClass('launched');
+          this.disabled = true;
+        });
         e.container.find('.drill-button').on('click', function(){$.get('drill/'+enemyName)});
 
         e.chart = new SmoothieChart({
