@@ -6,41 +6,7 @@
     <script type="text/javascript" src="/static/mustache.min.js"></script>
     <script type="text/javascript" src="/static/hypothesis.js"></script>
 
-    <style>
-      #content {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-
-      .enemy-container {
-        border: 1px solid black;
-        margin: 0.5em;
-        display: inline-flex;
-        flex-direction: column;
-        align-items: center;
-        flex-grow: 40%;
-      }
-
-      .button-container {
-        display: flex;
-        flex-direction: row;
-      }
-
-      .ews-canvas {
-        padding: 1em;
-      }
-
-      .lrr-readouts {
-        border-collapse: collapse;
-      }
-      .lrr-readouts td,th {
-        border: 1px solid black;
-        padding: 0 1em;
-        text-align: center;
-      }
-    </style>
+    <link rel="stylesheet" href="/static/petrovday.css" />
     <script>
 
       var MISSILE_FLIGHT_TIME_SECONDS = 3*60;
@@ -84,7 +50,7 @@
           LRR_READOUT_INTERVALS.forEach(function(interval) {
             var lrr = Math.round(e.hypothesisSet.getMaxLogRelativeRepresentativenessInRange(integerTime-interval[0], integerTime-interval[1]));
             e.container.find(`.lrr-readouts td[data-for-interval="${interval}"]`).text(Number.isFinite(lrr) ? lrr.toString() : "--");
-            e.container.find(`.lrr-readouts tr[data-for-interval="${interval}"]`).css({'background-color': (lrr > 2 ? 'pink' : 'initial')});
+            e.container.find(`.lrr-readouts tr[data-for-interval="${interval}"]`).css({'background-color': (lrr > 2 ? '#a00' : 'initial')});
           });
         });
 
@@ -100,12 +66,9 @@
 
       ENEMY_CONTAINER_TEMPLATE = `
         <div class="enemy-container" id="{{enemyName}}">
-          <p><strong>{{enemyName}}</strong></p>
-          <div class="button-container">
-            <button class="launch-button">Launch</button>
-            <button class="drill-button">Drill</button>
-          </div>
-          <canvas class="ews-canvas" width="500" height="300" />
+          <h2 class="enemy-name">{{enemyName}}</h2>
+          <button class="launch-button">&#9762;</button>
+          <canvas class="ews-canvas" width="500" height="200" />
           <table class="lrr-readouts">
             <tr>
               <th> Representativeness </th>
@@ -141,9 +104,9 @@
           horizontalLines: [
             {color:'#ffffff',lineWidth:1,value:0},
             {color:'#880000',lineWidth:2,value:100},
-            {color:'#880000',lineWidth:2,value:-100}
+            {color:'#008800',lineWidth:2,value:-100}
           ],
-          millisPerPixel: 333,
+          millisPerPixel: 50,
           maxValue: 150,
           minValue: -180,
           timestampFormatter: SmoothieChart.timeFormatter,
