@@ -53,9 +53,19 @@ body {
   background-color: #200;
   cursor: default;
 
+  border: none;
+
   color: #000;
   box-shadow: none;
   transform: translateY(4px) rotateX(25deg);
+}
+.launch-button.dead {
+  color: #0b0;
+}
+
+.countdown {
+  color: #aaa;
+  font-size: 0.5em;
 }
 
 .ews-canvas {

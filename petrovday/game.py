@@ -23,3 +23,13 @@ class Game:
 
   def read_ews(self, location, target, time):
     return self.ewss[location, target].get_reading([m for m in self.missiles if m.departure_time < time < m.eta], time)
+
+  def is_alive(self, player, t):
+    return not any(m.destination==player and m.eta < t for m in self.missiles)
+
+  def get_time_to_impact(self, aggressor, victim, time):
+    for missile in self.missiles:
+      if missile.origin==aggressor and missile.destination==victim:
+        dt = missile.eta-time
+        return f'{dt // 60}:{dt % 60 :02d}'
+    return None

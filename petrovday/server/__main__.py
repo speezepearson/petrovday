@@ -11,7 +11,7 @@ def get_integer_time():
   return int(time.time()-START_TIME)
 def wait_until_next_integer_time():
   remainder = time.time() % 1
-  time.sleep((1 if remainder==0 else remainder) + 0.01)
+  time.sleep((1 if remainder==0 else 1-remainder) + 0.01)
 
 app = flask.Flask(__name__)
 
@@ -50,6 +50,10 @@ def read_ews(player):
   if since == get_integer_time():
     wait_until_next_integer_time()
 
+  now = get_integer_time()
   return json.dumps({
-    t: {enemy: game.read_ews(player, enemy, t) for enemy in game.enemies(player)}
-    for t in range(since, get_integer_time())})
+    enemy: {'readings': {t: game.read_ews(player, enemy, t)
+                         for t in range(since+1, now)},
+            'alive': game.is_alive(enemy, now),
+            'time_to_impact': game.get_time_to_impact(player, enemy, now)}
+    for enemy in game.enemies(player)})

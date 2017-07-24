@@ -15,6 +15,29 @@
 
       var enemies = {};
 
+      function setCountdown(enemyName, timeRemaining) {
+        if (timeRemaining === null) {
+          return;
+        } else {
+          markButtonLaunched(enemyName);
+          var e = enemies[enemyName];
+          if (e.countdown === null) {
+            e.countdown = $('<span class="countdown" />');
+            e.container.find('.launch-button').html(e.countdown);
+          }
+          if (timeRemaining === 0) {
+            markEnemyDead(enemyName);
+          } else {
+            e.countdown.text(timeRemaining);
+          }
+        }
+      }
+
+      function markButtonLaunched(enemyName) {
+        var $b = enemies[enemyName].container.find('.launch-button');
+        $b.addClass('launched');
+        $b.prop('disabled', true);
+      }
 
       // Standard Normal variate using Box-Muller transform.
       // Stolen from https://stackoverflow.com/a/36481059
@@ -28,30 +51,55 @@
         Object.entries(obj).forEach(function(kv){f(kv[0], kv[1]);});
       }
 
+      function markEnemyDead(enemyName) {
+        markButtonLaunched(enemyName);
+        enemies[enemyName].chart.stop();
+        setTimeout(function() {
+          var c = enemies[enemyName].container.find('.ews-canvas')[0];
+          var cx = c.getContext('2d');
+          cx.fillStyle = 'black'; cx.beginPath(); cx.rect(0, 0, c.width, c.height); cx.fill();
+          enemies[enemyName].container.find('.lrr-readouts').css({'color': 'black'});
+        }, 700);
+        var $b = enemies[enemyName].container.find('.launch-button');
+        $b.text(String.fromCharCode(9760));
+        $b.addClass('dead');
+      }
+
       var integerTime = 0;
-      function note_ews_readings(readings) {
+      function integerTime2Date(t) {
+        var result = new Date()
+        result.setSeconds(result.getSeconds() - (integerTime-t));
+        return result;
+      }
 
-        nData = Object.getOwnPropertyNames(readings).length;
-        integerTime += nData;
+      function updateEnemyInfo(enemyName, info) {
+        var e = enemies[enemyName];
+        if (!info.alive) {
+          markEnemyDead(enemyName);
+        } else {
+          noteEWSReadings(enemyName, info.readings);
+          setCountdown(enemyName, info.time_to_impact);
+        }
+      }
 
-        var readingTime = new Date();
-        readingTime.setSeconds(readingTime.getSeconds() - nData);
-        forEachKV(readings, function(t, readingsByEnemyName) {
-          readingTime.setSeconds(readingTime.getSeconds() + 1);
-          t = parseInt(t);
-          forEachKV(readingsByEnemyName, function(enemyName, reading) {
-            var e = enemies[enemyName];
-            e.hypothesisSet.updateRelativeRepresentativenesses(t, reading);
-            e.timeSeries.append(readingTime.getTime(), 100 * ((reading ? 1 : -1) + normalvariate()/10));
-          });
+      function noteEWSReadings(enemyName, readings) {
+
+        var e = enemies[enemyName];
+
+        if (Object.getOwnPropertyNames(readings).length === 0) {
+          return;
+        }
+        integerTime = Math.max.apply(null, Object.getOwnPropertyNames(readings).map(function(x){return parseInt(x)}));
+
+        forEachKV(readings, function(t, reading) {
+          e.hypothesisSet.updateRelativeRepresentativenesses(t, reading);
+          e.timeSeries.append(integerTime2Date(t).getTime(), 100 * ((reading ? 1 : -1) + normalvariate()/10));
         });
 
-        forEachKV(enemies, function(enemyName, e) {
-          LRR_READOUT_INTERVALS.forEach(function(interval) {
-            var lrr = Math.round(e.hypothesisSet.getMaxLogRelativeRepresentativenessInRange(integerTime-interval[0], integerTime-interval[1]));
-            e.container.find(`.lrr-readouts td[data-for-interval="${interval}"]`).text(Number.isFinite(lrr) ? lrr.toString() : "--");
-            e.container.find(`.lrr-readouts tr[data-for-interval="${interval}"]`).css({'background-color': (lrr > 2 ? '#a00' : 'initial')});
-          });
+        LRR_READOUT_INTERVALS.forEach(function(interval) {
+          var lrr = Math.round(e.hypothesisSet.getMaxLogRelativeRepresentativenessInRange(integerTime-interval[0], integerTime-interval[1]));
+          e.container.find(`.lrr-readouts td[data-for-interval="${interval}"]`).text(Number.isFinite(lrr) ? lrr.toString() : "--");
+          e.container.find(`.lrr-readouts tr[data-for-interval="${interval}"]`).css({'background-color': (lrr > 4 ? '#a00' : 'initial')});
         });
 
       }
@@ -59,8 +107,8 @@
       function read_ewss_forever() {
         $.get('./read_ewss', {'since': integerTime},
           function(data) {
-            note_ews_readings(JSON.parse(data));
-            setTimeout(function(){read_ewss_forever()}, 1);
+            forEachKV(JSON.parse(data), updateEnemyInfo);
+            setTimeout(function(){read_ewss_forever()}, 1000);
           });
       }
 
@@ -88,17 +136,15 @@
       `
 
       function add_enemy(enemyName) {
-        var e = {'hypothesisSet': new HypothesisSet()};
+        var e = {'hypothesisSet': new HypothesisSet(), 'countdown': null};
 
         e.container = $(Mustache.render(ENEMY_CONTAINER_TEMPLATE, {'enemyName': enemyName}));
         $('#content').append(e.container);
 
         e.container.find('.launch-button').on('click', function(){
+          markButtonLaunched(enemyName);
           $.get('launch/'+enemyName);
-          $(this).addClass('launched');
-          this.disabled = true;
         });
-        e.container.find('.drill-button').on('click', function(){$.get('drill/'+enemyName)});
 
         e.chart = new SmoothieChart({
           grid: {
