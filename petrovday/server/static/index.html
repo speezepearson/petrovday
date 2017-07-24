@@ -60,7 +60,7 @@
         $.get('./read_ewss', {'since': integerTime},
           function(data) {
             note_ews_readings(JSON.parse(data));
-            setTimeout(function(){read_ewss_forever()}, 500);
+            setTimeout(function(){read_ewss_forever()}, 1);
           });
       }
 
@@ -112,7 +112,7 @@
           timestampFormatter: SmoothieChart.timeFormatter,
           labels: {disabled: true}
         });
-        e.chart.streamTo(e.container.find('.ews-canvas')[0], 0/*delay*/);
+        e.chart.streamTo(e.container.find('.ews-canvas')[0], 1000/*delay*/);
 
         e.timeSeries = new TimeSeries();
 
