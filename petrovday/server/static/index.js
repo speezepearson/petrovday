@@ -9,7 +9,7 @@ function setCountdown(enemyName, timeRemaining) {
   if (timeRemaining === null) {
     return;
   } else {
-    markButtonLaunched(enemyName);
+    markButtonUnusable(enemyName);
     var e = enemies[enemyName];
     if (e.countdown === null) {
       e.countdown = $('<span class="countdown" />');
@@ -27,9 +27,9 @@ function getButton(enemyName) {
   return enemies[enemyName].container.find('.launch-button');
 }
 
-function markButtonLaunched(enemyName) {
+function markButtonUnusable(enemyName) {
   var $b = getButton(enemyName);
-  $b.addClass('launched');
+  $b.addClass('unusable');
   $b.prop('disabled', true);
 }
 
@@ -53,7 +53,7 @@ function stopChart(enemyName) {
 
 function markEnemyDead(enemyName) {
   var $b = getButton(enemyName);
-  $b.prop({'disabled': 'true'});
+  markButtonUnusable(enemyName);
   $b.text(String.fromCharCode(9760));
   $b.addClass('dead');
   setTimeout(function(){stopChart(enemyName);}, (MISSILE_FLIGHT_TIME_SECONDS+10)*1000);
@@ -100,7 +100,7 @@ function die() {
   console.log('dying now');
   var $content = $('#content');
   soundExplosion();
-  Object.keys(enemies).forEach(markButtonLaunched);
+  Object.keys(enemies).forEach(markButtonUnusable);
   setTimeout(function() {
     console.log('stopping charts');
     Object.keys(enemies).forEach(stopChart);
@@ -173,7 +173,7 @@ function add_enemy(enemyName) {
   $('#content').append(e.container);
 
   e.container.find('.launch-button').on('click', function(){
-    markButtonLaunched(enemyName);
+    markButtonUnusable(enemyName);
     $.get('launch/'+enemyName);
   });
 

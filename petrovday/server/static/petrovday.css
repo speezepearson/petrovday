@@ -49,7 +49,7 @@ body {
   box-shadow: none;
   transform: translateY(4px) rotateX(25deg);
 }
-.launch-button.launched {
+.launch-button.unusable {
   background-color: #200;
   cursor: default;
 
