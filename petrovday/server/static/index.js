@@ -49,10 +49,10 @@ function stopChart(enemyName) {
 
 function markEnemyDead(enemyName) {
   markButtonLaunched(enemyName);
-  stopChart(enemyName);
   var $b = enemies[enemyName].container.find('.launch-button');
   $b.text(String.fromCharCode(9760));
   $b.addClass('dead');
+  setTimeout(function(){stopChart(enemyName);}, (MISSILE_FLIGHT_TIME_SECONDS+10)*1000);
 }
 
 var integerTime = 0;
@@ -80,10 +80,9 @@ function updateEnemyInfo(enemyName, info) {
   var e = enemies[enemyName];
   if (!info.alive) {
     markEnemyDead(enemyName);
-  } else {
-    noteEWSReadings(enemyName, info.readings);
-    setCountdown(enemyName, info.time_to_impact);
   }
+  noteEWSReadings(enemyName, info.readings);
+  setCountdown(enemyName, info.time_to_impact);
 }
 
 var lastAlarmTime = 0;
