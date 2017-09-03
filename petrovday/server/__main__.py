@@ -11,11 +11,12 @@ import petrovday
 parser = argparse.ArgumentParser()
 parser.add_argument('players', nargs='+')
 parser.add_argument('--public', action='store_true')
+parser.add_argument('--demo', action='store_true')
 args = parser.parse_args()
 
 app = bottle.Bottle(__name__)
 game = petrovday.Game(players=args.players)
-secret = secrets.token_bytes(nbytes=8)
+secret = b'' if args.demo else secrets.token_bytes(nbytes=8)
 server = petrovday.server.Server(app=app, game=game, secret=secret)
 server.clock.start()
 
