@@ -15,7 +15,7 @@ class Server:
     self.clock = petrovday.DiscreteClock()
     self.app = app
     self.game = game
-    self.app.route('/<player>')(self.index)
+    self.app.route('/<player>')(lambda player: bottle.redirect(f'/{player}/'))
     self.app.route('/<player>/')(self.index)
     self.app.route('/favicon.ico')(lambda: bottle.HTTPError(status=404))
     self.app.route('/static/<filename>')(self.static)
