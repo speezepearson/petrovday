@@ -24,13 +24,10 @@ class Server:
     self.app.route('/<player>/drill/<enemy>')(self.drill)
     self.app.route('/<player>/update')(self.update)
 
-  def handle_invalid_player(self, error):
-    self.app.abort(400, f'Invalid player {error.player} (valid players are {self.game.players})')
-
   def ensure_valid_players(self, *players):
-    for player in players:
-      if player not in self.game.players:
-        raise InvalidPlayer(player)
+    invalids = set(players) - set(self.game.players)
+    if invalids:
+      bottle.abort(400, f'Invalid players {invalids} (valid players are {self.game.players})')
 
   def index(self, player):
     self.ensure_valid_players(player)
