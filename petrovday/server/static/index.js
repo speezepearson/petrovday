@@ -23,8 +23,12 @@ function setCountdown(enemyName, timeRemaining) {
   }
 }
 
+function getButton(enemyName) {
+  return enemies[enemyName].container.find('.launch-button');
+}
+
 function markButtonLaunched(enemyName) {
-  var $b = enemies[enemyName].container.find('.launch-button');
+  var $b = getButton(enemyName);
   $b.addClass('launched');
   $b.prop('disabled', true);
 }
@@ -48,8 +52,8 @@ function stopChart(enemyName) {
 }
 
 function markEnemyDead(enemyName) {
-  markButtonLaunched(enemyName);
-  var $b = enemies[enemyName].container.find('.launch-button');
+  var $b = getButton(enemyName);
+  $b.prop({'disabled': 'true'});
   $b.text(String.fromCharCode(9760));
   $b.addClass('dead');
   setTimeout(function(){stopChart(enemyName);}, (MISSILE_FLIGHT_TIME_SECONDS+10)*1000);
