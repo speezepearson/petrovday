@@ -10,6 +10,7 @@ import petrovday
 
 parser = argparse.ArgumentParser()
 parser.add_argument('players', nargs='+')
+parser.add_argument('--public', action='store_true')
 args = parser.parse_args()
 
 app = bottle.Bottle(__name__)
@@ -25,4 +26,4 @@ for player in sorted(game.players):
   print(f'  {player: >{n}}: {server.get_password(player)}')
 print('###############################################################\n')
 
-bottle.run(app, host='localhost', port=5000)
+bottle.run(app, host=('0.0.0.0' if args.public else 'localhost'), port=5000)
