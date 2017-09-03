@@ -13,6 +13,7 @@
       var LRR_READOUT_INTERVALS = [[180, 165], [165, 150], [150, 120],
                                    [120, 60], [60, 30], [30, 0]];
 
+      var alive = true;
       var enemies = {};
 
       function setCountdown(enemyName, timeRemaining) {
@@ -47,10 +48,6 @@
           return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
       }
 
-      function forEachKV(obj, f) {
-        Object.entries(obj).forEach(function(kv){f(kv[0], kv[1]);});
-      }
-
       function markEnemyDead(enemyName) {
         markButtonLaunched(enemyName);
         enemies[enemyName].chart.stop();
@@ -72,6 +69,17 @@
         return result;
       }
 
+      function noteUpdates(data) {
+        integerTime = data.discrete_time;
+        if (!data.alive) {
+          alive = false;
+          $('body').remove();
+        }
+        Object.entries(data.enemy_info).forEach(function([enemyName, info]) {
+          updateEnemyInfo(enemyName, info)
+        });
+      }
+
       function updateEnemyInfo(enemyName, info) {
         var e = enemies[enemyName];
         if (!info.alive) {
@@ -83,15 +91,9 @@
       }
 
       function noteEWSReadings(enemyName, readings) {
-
         var e = enemies[enemyName];
 
-        if (Object.getOwnPropertyNames(readings).length === 0) {
-          return;
-        }
-        integerTime = Math.max.apply(null, Object.getOwnPropertyNames(readings).map(function(x){return parseInt(x)}));
-
-        forEachKV(readings, function(t, reading) {
+        Object.entries(readings).forEach(function([t, reading]) {
           e.hypothesisSet.updateRelativeRepresentativenesses(t, reading);
           e.timeSeries.append(integerTime2Date(t).getTime(), 100 * ((reading ? 1 : -1) + normalvariate()/10));
         });
@@ -104,11 +106,13 @@
 
       }
 
-      function read_ewss_forever() {
-        $.get('./read_ewss', {'since': integerTime},
+      function request_updates_until_dead() {
+        $.get('./update', {'since': integerTime},
           function(data) {
-            forEachKV(JSON.parse(data), updateEnemyInfo);
-            setTimeout(function(){read_ewss_forever()}, 1000);
+            noteUpdates(JSON.parse(data));
+            if (alive) {
+              setTimeout(function(){request_updates_until_dead()}, 100);
+            }
           });
       }
 
@@ -177,7 +181,7 @@
           JSON.parse(data).forEach(function(enemyName) {
             add_enemy(enemyName);
           })
-          read_ewss_forever();
+          request_updates_until_dead();
         });
 
       });

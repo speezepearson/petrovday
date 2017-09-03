@@ -17,11 +17,12 @@ class Server:
     self.game = game
     self.app.route('/<player>')(self.index)
     self.app.route('/<player>/')(self.index)
+    self.app.route('/favicon.ico')(lambda: bottle.HTTPError(status=404))
     self.app.route('/static/<filename>')(self.static)
     self.app.route('/<player>/enemies')(self.enemies)
     self.app.route('/<player>/launch/<enemy>')(self.launch)
     self.app.route('/<player>/drill/<enemy>')(self.drill)
-    self.app.route('/<player>/read_ewss')(self.read_ewss)
+    self.app.route('/<player>/update')(self.update)
 
   def handle_invalid_player(self, error):
     self.app.abort(400, f'Invalid player {error.player} (valid players are {self.game.players})')
@@ -52,7 +53,7 @@ class Server:
     self.launch(enemy, player)
     return ''
 
-  def read_ewss(self, player):
+  def update(self, player):
     self.ensure_valid_players(player)
 
     since = int(bottle.request.query['since'])
@@ -61,8 +62,11 @@ class Server:
 
     reading_start_time = max(since+1, now-500)
     return json.dumps({
-      enemy: {'readings': {t: self.game.read_ews(player, enemy, t)
-                           for t in range(reading_start_time, now)},
-              'alive': self.game.is_alive(enemy, now),
-              'time_to_impact': self.game.get_time_to_impact(player, enemy, now)}
-      for enemy in self.game.enemies(player)})
+      'discrete_time': self.clock.current_time,
+      'alive': self.game.is_alive(player, now),
+      'enemy_info': {
+        enemy: {'readings': {t: self.game.read_ews(player, enemy, t)
+                             for t in range(reading_start_time, now+1)},
+                'alive': self.game.is_alive(enemy, now),
+                'time_to_impact': self.game.get_time_to_impact(player, enemy, now)}
+        for enemy in self.game.enemies(player)}})

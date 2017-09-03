@@ -13,7 +13,7 @@ class DiscreteClock:
       if wakeup <= self.current_time:
         return True
     with self.conditions[wakeup]:
-      return self.conditions[wakeup].wait(timeout=timeout)
+      self.conditions[wakeup].wait(timeout=timeout)
 
   def tick(self):
     with self.mutex:
