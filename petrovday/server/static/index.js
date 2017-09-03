@@ -204,11 +204,17 @@ function add_enemy(enemyName) {
 
 $(function() {
 
-  $.get('enemies', function(data) {
-    JSON.parse(data).forEach(function(enemyName) {
-      add_enemy(enemyName);
+  $('#submit_password').on('click', function() {
+    $.get('authenticate', {'password': $('#password').val()}, function(data) {
+      $('#authenticator').remove();
+      $.get('enemies', function(data) {
+        JSON.parse(data).forEach(function(enemyName) {
+          add_enemy(enemyName);
+        })
+        request_updates_until_dead();
+      });
+
     })
-    request_updates_until_dead();
-  });
+  })
 
 });

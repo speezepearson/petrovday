@@ -81,3 +81,17 @@ body {
   padding: 0 1em;
   text-align: center;
 }
+
+
+
+#authenticator {
+  font-size: 2em;
+  border: 1px solid gray;
+  width: 70%;
+  margin: 3em;
+  padding: 2em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
