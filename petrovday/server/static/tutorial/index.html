@@ -1,0 +1,102 @@
+<html>
+  <head>
+    <title>Petrov Day Tutorial</title>
+    <style>
+      body {
+        background-color: black;
+        color: white;
+      }
+      .screenshot {
+        max-width: 80%;
+        border: 1px solid gray;
+      }
+      .screenshot-container {
+        flex-direction: column;
+        display: flex;
+        align-items: center;
+      }
+      .indent {
+        margin-left: 2em;
+      }
+      li {
+        margin-bottom: 2em;
+      }
+      #content {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 80%;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="content">
+      <h1 style="text-align: center">
+        Nuclear Monitoring and Control Instructional Supplement
+      </h1>
+
+      <p>This document is meant as a brief high-level overview of the interface for the Argus Nuclear Monitoring and Control System.</p>
+
+      <ol class="indent">
+
+      <li>
+        <p>At the beginning of your shift, the site engineer will give you the URL and login credentials for the monitoring station:</p>
+        <details class="indent"><summary>Show image</summary>
+          <div class="screenshot-container"><img class="screenshot" src="./img/1-authentication.png" /></div>
+        </details>
+
+        <p>(This password is your only authentication mechanism: keep tight hold of it.)</p>
+      </li>
+
+      <li>
+        <p>The monitoring station has one section for each enemy power, consisting of a launch button and a readout from the early warning system:</p>
+        <details class="indent"><summary>Show image</summary>
+          <div class="screenshot-container"><img class="screenshot" src="./img/2-normal.png" /></div>
+        </details>
+
+        <p>The EWS works essentially by radar: sending out a pulse of radiation every second, and analyzing the echoes. There are occasional false positives, visible above, due to the anti-detection measures we suspect the enemy's missiles are equipped with.</p>
+      </li>
+
+      <li>
+        <p>If it is clear that another power has lauched at us, you are to retaliate immediately by pressing the launch button:</p>
+        <details class="indent"><summary>Show image</summary>
+          <div class="screenshot-container"><img class="screenshot" src="./img/3-post-launch.png" /></div>
+        </details>
+
+        <p>Our missiles will take about three minutes to reach them: the countdown shows the estimated time until impact.</p>
+      </li>
+
+      <li>
+        <p>Our spies tell us that their monitoring tech (shown here on the right) is remarkably similar to ours, likely a result of their shameless espionage:</p>
+        <details class="indent"><summary>Show image</summary>
+          <div class="screenshot-container"><img class="screenshot" src="./img/4-increased-readings.png" /></div>
+        </details>
+
+        <p>As you see, after about a minute, they'll have a pretty good idea that you've launched...</p>
+      </li>
+
+      <li>
+        <p>...and after about two minutes it will be unmistakeable:</p>
+        <details class="indent"><summary>Show image</summary>
+          <div class="screenshot-container"><img class="screenshot" src="./img/5-very-increased-readings.png" /></div>
+        </details>
+      </li>
+
+      <li>
+        <p>When an enemy power has been eliminated, either by us or by another, a reverse countdown will show -- it's possible that, in their expiring moments, they will have launched at us. There's nothing to be done at this point but wait.</p>
+        <details class="indent"><summary>Show image</summary>
+          <div class="screenshot-container"><img class="screenshot" src="./img/6-reverse-countdown.png" /></div>
+        </details>
+      </li>
+
+      <li>
+        <p>With luck, they will have written off our launch as a malfunction until it was too late; when it's been long enough that we're sure we're safe, their EWS will deactivate.</p>
+        <details class="indent"><summary>Show image</summary>
+          <div class="screenshot-container"><img class="screenshot" src="./img/8-post-death.png" /></div>
+        </details>
+      </li>
+    </ol>
+
+  </div>
+  </body>
+</html>
