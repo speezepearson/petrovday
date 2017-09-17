@@ -35,7 +35,7 @@
         Nuclear Monitoring and Control Instructional Supplement
       </h1>
 
-      <p>This document is meant as a brief high-level overview of the interface for the Argus Nuclear Monitoring and Control System.</p>
+      <p>This document is meant as a brief high-level overview of the basic Nuclear Monitoring and Control System interface.</p>
 
       <ol class="indent">
 
@@ -54,7 +54,9 @@
           <div class="screenshot-container"><img class="screenshot" src="./img/2-normal.png" /></div>
         </details>
 
-        <p>The EWS works essentially by radar: sending out a pulse of radiation every second, and analyzing the echoes. There are occasional false positives, visible above, due to the anti-detection measures we suspect the enemy's missiles are equipped with.</p>
+        <p>The EWS works essentially by radar: sending out a pulse of radiation every second, and analyzing the echoes to determine whether or not a missile is incoming. There are occasional false positives -- we have to set the detection threshold rather low due to the anti-detection measures we suspect the enemy's missiles are equipped with.</p>
+
+        <p>The readouts above are fairly typical: readings hovering around the lower green line, with occasional spikes up to the red line. If the readings ever start hovering around the red line, it's very likely that we've been launched at. (An alarm will sound if the EWS's rudimentary built-in analysis algorithms believe a missile is incoming.)</p>
       </li>
 
       <li>
