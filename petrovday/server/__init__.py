@@ -87,7 +87,6 @@ class Server:
                              for t in range(
                                reading_start_time,
                                1+min(now, (self.game.missile_flight_time+self.game.get_previous_time_of_death(enemy, now, float('inf')))))},
-                'lrrs': self.game.get_lrrs(player, enemy),
                 'alive': self.game.is_alive(enemy, now),
                 'timeOfDeath': self.game.get_previous_time_of_death(enemy, now),
                 'timeToImpact': self.game.get_time_to_impact(player, enemy, now)}
