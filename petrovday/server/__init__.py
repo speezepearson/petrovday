@@ -50,15 +50,10 @@ class Server:
       print(password, self.get_password(player))
       return bottle.HTTPError(status=401)
     bottle.response.set_cookie('password', bottle.request.query['password'])
-    return 'Successfully authenticated'
+    return json.dumps(self.get_update_dict(player, since=0))
 
   def static(self, filename):
     return bottle.static_file(filename=filename, root=STATIC_DIR)
-
-  @requires_authentication
-  def enemies(self, player):
-    self.ensure_valid_players(player)
-    return json.dumps(list(sorted(self.game.enemies(player))))
 
   @requires_authentication
   def launch(self, player, enemy):
@@ -78,15 +73,22 @@ class Server:
 
     since = int(bottle.request.query['since'])
     self.clock.wait_until(since+1)
+    return json.dumps(self.get_update_dict(player, since))
+
+  def get_update_dict(self, player, since) -> dict:
     now = self.clock.current_time
 
     reading_start_time = max(since+1, now-500)
-    return json.dumps({
-      'discrete_time': self.clock.current_time,
+    return {
+      'discreteTime': self.clock.current_time,
       'alive': self.game.is_alive(player, now),
-      'enemy_info': {
+      'enemyInfos': {
         enemy: {'readings': {t: self.game.read_ews(player, enemy, t)
-                             for t in range(reading_start_time, now+1)},
+                             for t in range(
+                               reading_start_time,
+                               1+min(now, (self.game.missile_flight_time+self.game.get_previous_time_of_death(enemy, now, float('inf')))))},
+                'lrrs': self.game.get_lrrs(player, enemy),
                 'alive': self.game.is_alive(enemy, now),
-                'time_to_impact': self.game.get_time_to_impact(player, enemy, now)}
-        for enemy in self.game.enemies(player)}})
+                'timeOfDeath': self.game.get_previous_time_of_death(enemy, now),
+                'timeToImpact': self.game.get_time_to_impact(player, enemy, now)}
+        for enemy in self.game.enemies(player)}}

@@ -30,6 +30,11 @@ class Game:
   def get_time_to_impact(self, aggressor, victim, time):
     for missile in self.missiles:
       if missile.origin==aggressor and missile.destination==victim:
-        dt = missile.eta-time
-        return f'{dt // 60}:{dt % 60 :02d}'
+        return missile.eta-time
     return None
+
+  def get_previous_time_of_death(self, victim, before, default=None):
+    etas = [m.eta for m in self.missiles if m.destination == victim and m.eta <= before]
+    if etas:
+      return min(etas)
+    return default
