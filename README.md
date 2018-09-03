@@ -20,3 +20,17 @@ If your friends are all too nice, and you know they won't really nuke you, set u
 You have an EWS pointing at each enemy power. An EWS measures... something-or-other radiation, the kids in the lab had a fancy name for it. Anyway, the important part is, missiles emit heckloads of it! If you have your EWS trained on somebody who launches a missile at you, the readings will go up and up and up until it, uh, lands. And if they launch at somebody else, you'll see a spike at first, but it will drop off.
 
 Unfortunately, there's some level of background radiation and measurement noise, which fluctuates quite a bit, and once in a while, it might look like they've launched when they haven't. C'est la vie.
+
+
+
+Installation / Setup
+====================
+
+First, `git clone` this repo. Then
+```
+cd petrovday/
+(cd client/ && npm install && npm run build)
+(cd ../server && pip install -r requirements.txt && python -m petrovday.server --public $PLAYERNAME_1 $PLAYERNAME_2 $...)
+```
+
+This should start a web server listening on `localhost:5000`, and print out the passwords that each player will need to use to log in: give each password to the corresponding player, along with a link to `http://<your IP address or domain name>:5000/<their player name>`.
