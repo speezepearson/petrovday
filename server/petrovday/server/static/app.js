@@ -1,1 +1,1 @@
-../../../client/dist/app.js
+../../../../client/dist/app.js
