@@ -1,0 +1,14 @@
+.enemy-container {
+  border: 1px solid #666;
+  padding: 0.5em;
+  margin: 0.1em;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 100%;
+}
+
+.enemy-container .enemy-name {
+  margin: 0;
+  padding: 0;
+}

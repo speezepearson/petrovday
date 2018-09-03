@@ -1,0 +1,24 @@
+.authenticator {
+  font-size: 2em;
+  border: 1px solid gray;
+  width: 70%;
+  margin: 3em auto;
+  padding: 2em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.authenticator__password-field.failed {
+  outline: 2px solid red;
+}
+
+.authenticator__button-holder {
+  display: flex;
+  width: 3em;
+}
+
+.authenticator__spinner {
+  margin-left: 0.5em;
+}

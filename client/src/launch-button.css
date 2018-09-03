@@ -1,0 +1,40 @@
+.launch-button {
+  height: 1.5em;
+  width: 1.5em;
+  font-weight: 900;
+  text-align: center;
+  font-size: 3em;
+  border-radius: 50%;
+}
+
+.launch-button--ready {
+  background-color: #900;
+  color: #400;
+  cursor: pointer;
+
+  border: 1.5px solid #400;
+  box-shadow: 0px 4px #333;
+  transform: rotateX(25deg);
+}
+
+.launch-button--ready:active {
+  background-color: #400;
+  color: #000;
+
+  box-shadow: none;
+  transform: translateY(4px) rotateX(25deg);
+}
+
+.launch-button--ticking {
+  background-color: #200;
+  color: #000;
+
+  border: none;
+  box-shadow: none;
+  transform: translateY(4px) rotateX(25deg);
+}
+.launch-button--obsolete {
+  background-color: #200;
+  color: #0b0;
+  border: none;
+}

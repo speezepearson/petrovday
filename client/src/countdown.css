@@ -1,0 +1,8 @@
+.countdown {
+  color: #aaa;
+  font-size: 0.5em;
+}
+
+.countdown--negative {
+  color: #f44;
+}
