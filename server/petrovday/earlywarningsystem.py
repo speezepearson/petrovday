@@ -32,4 +32,4 @@ class EarlyWarningSystem:
       if m.origin==self.target and m.destination==self.location:
         alarm_p += (1-alarm_p)*self.fractional_increase_in_p_for_missile(_get_fractional_progress(m, time))
         break
-    return random.Random((self.seed, time)).random() < alarm_p
+    return random.Random(str((self.seed, time))).random() < alarm_p
